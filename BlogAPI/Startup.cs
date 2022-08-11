@@ -1,4 +1,6 @@
 using BlogAPI.Src.Contextos;
+using BlogAPI.Src.Repositorios;
+using BlogAPI.Src.Repositorios.Implementacoes;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -29,8 +31,15 @@ namespace BlogAPI
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<BlogPessoalContexto>(opt =>opt.UseSqlServer(Configuration["ConnectionStringsDev:DefaultConnection"]));
+            services.AddScoped<IUsuario, UsuarioRepositorio>();
+            services.AddScoped<ITemas, TemaRepositorio>();
+            services.AddScoped<IPostagem, PostagemRepositorio>();
+
+            // Controladores
+            services.AddCors();
             services.AddControllers();
         }
+
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env, BlogPessoalContexto contexto)
@@ -40,6 +49,14 @@ namespace BlogAPI
                 contexto.Database.EnsureCreated();
                 app.UseDeveloperExceptionPage();
             }
+
+            // Ambiente de produção
+            // Rotas
+            app.UseRouting();
+            app.UseCors(c => c
+            .AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader());
 
             // Ambiente de produção
             contexto.Database.EnsureCreated();
